@@ -1,1 +1,4 @@
 node_modules
+kong-quickstart*
+kong.env
+.pgdata
