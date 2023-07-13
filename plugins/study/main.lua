@@ -8,19 +8,19 @@ end
 
 function add_task_option()
     io.write("Task: ")
-    task_text = io.read("*line")
+    local task_text = io.read("*line")
     todos.add(task_text)
     message = 'Task added'
 end
 
 function print_tasks_table(tasks) 
     print("\n\n# Task")
-    if (#tasks == 0) then
+    if (todos.isempty()) then
         print "Empty"
         return
     end
-    for index, task in ipairs(tasks) do
-        print(task.id .. " " .. task.text)
+    for id, task in pairs(tasks) do
+        print(id .. " " .. task.text)
     end
 end 
 
@@ -32,13 +32,13 @@ end
 
 function delete_tasks_option()
     tasks = todos.all()
-    if (#tasks == 0) then
+    if (todos.isempty()) then
         message = 'Tasks not found'
         return
     end
     print_tasks_table(todos.all())
     io.write('\nTask id: ')
-    task_id = tonumber(io.read("*line"))
+    local task_id = tonumber(io.read("*line"))
     if (todos.exists(task_id) == false) then
         message = 'Task not found'
         return
@@ -47,10 +47,26 @@ function delete_tasks_option()
     message = 'Task deleted'
 end
 
+function export_tasks_option()
+    if (todos.isempty()) then
+        return
+    end
+    local current_time = os.time()
+    local filename = os.date('%d_%m_%Y_%H_%M_%S', current_time) .. '.todos'
+    local file = io.open(filename, 'w')
+    local title = 'TASKS ' .. os.date('%d/%m/%Y %H:%M:%S', current_time) .. '\n'
+    file:write(title)
+    for id, task in pairs(todos.all()) do
+        file:write(id .. ' - ' .. task.text .. '\n')
+    end
+    file:close()
+end
+
 operations = {
     {label = "Add task", handler = add_task_option},
     {label = "List tasks", handler = list_tasks_option},
-    {label = "Delete tasks", handler = delete_tasks_option}
+    {label = "Delete tasks", handler = delete_tasks_option},
+    {label = "Export to file", handler = export_tasks_option}
 }
 
 
@@ -65,8 +81,8 @@ while (true) do
         print("[" .. index .. "] " .. operation.label)
     end
     io.write(": ")
-    option = tonumber(io.read("*line"))
-    operation = operations[option]
+    local option = tonumber(io.read("*line"))
+    local operation = operations[option]
     if (operation == nil) then
         message = 'Invalid option'
     else
