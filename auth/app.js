@@ -1,6 +1,11 @@
 import express, { Router } from 'express';
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
 import jwt from 'jsonwebtoken';
 
+const currentDir = path.dirname(url.fileURLToPath(import.meta.url));
+const packageJson = JSON.parse(fs.readFileSync(path.resolve(currentDir, 'package.json')));
 const SECRET = '123123';
 const PORT = process.env.PORT || 3000;
 
@@ -14,6 +19,12 @@ const requestAuthToken = (request) => request.headers.authorization?.split(' ')[
 
 const app = express();
 app.use(express.json());
+app.get('/healthy', (_, response) => {
+    return response.json({
+        status: 'running',
+        version: packageJson.version,
+    });
+});
 app.post('/signup', (request, response) => {
     const { username } = request.body;
     if (usernameHasTaken(username)) {

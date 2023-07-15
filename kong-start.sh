@@ -22,7 +22,7 @@ docker run --rm --network=kong-net \
  -e "KONG_PASSWORD=test" \
     kong/kong-gateway:3.3.0.0 kong migrations bootstrap
 
-docker run -d --name kong-gateway \
+docker run --name kong-gateway \
  --network=kong-net \
  -e "KONG_DATABASE=postgres" \
  -e "KONG_PG_HOST=kong-database" \
@@ -43,4 +43,6 @@ docker run -d --name kong-gateway \
  -p 8445:8445 \
  -p 8003:8003 \
  -p 8004:8004 \
+ -v ./kong.conf:/etc/kong/kong.conf \
+ -v ./plugins/filelogger:/kong/plugins/filelogger \
  kong/kong-gateway:3.3.0.0
