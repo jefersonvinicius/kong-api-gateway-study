@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 import jwt from 'jsonwebtoken';
+import morgan from 'morgan'
 
 const currentDir = path.dirname(url.fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(currentDir, 'package.json')));
@@ -19,12 +20,15 @@ const requestAuthToken = (request) => request.headers.authorization?.split(' ')[
 
 const app = express();
 app.use(express.json());
+app.use(morgan('dev'))
+
 app.get('/healthy', (_, response) => {
     return response.json({
         status: 'running',
         version: packageJson.version,
     });
 });
+
 app.post('/signup', (request, response) => {
     const { username } = request.body;
     if (usernameHasTaken(username)) {
@@ -43,8 +47,7 @@ app.post('/login', (request, response) => {
     return response.json({ user, token });
 });
 
-const privateRouter = Router();
-privateRouter.use((request, response, next) => {
+const authentication = (request, response, next) => {
     try {
         const token = requestAuthToken(request);
         const decoded = jwt.verify(token, SECRET);
@@ -53,14 +56,12 @@ privateRouter.use((request, response, next) => {
     } catch (error) {
         return response.status(401).json({ message: 'Authentication failed' });
     }
-});
+}
 
-privateRouter.get('/current', (request, response) => {
+app.get('/current', authentication, (request, response) => {
     const user = getUserByUsername(response.locals.tokenDecoded.username);
     return response.json({ user });
 });
-
-app.use(privateRouter);
 
 app.listen(PORT, () => {
     console.log(`Serving auth at port ${PORT}`);
