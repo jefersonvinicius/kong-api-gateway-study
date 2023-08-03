@@ -1,4 +1,3 @@
-local access = require "kong.plugins.basic-auth.access"
 local kong_meta = require "kong.meta"
 
 local FileLoggerHandler = {
@@ -19,10 +18,26 @@ local function dump(o)
     end
  end
 
+
+
+function FileLoggerHandler:init_worker() 
+    print('------- init_worker -------')
+end
+
 function FileLoggerHandler:access(conf)
-    print("------> access <------")
-    print(dump(conf))
-    access.execute(conf)
+    print("------ access ------")
+    local file = io.open('./logs.txt', 'a')
+    local request = kong.request
+    local current_time = os.date("!%Y-%m-%dT%H:%M:%S") .. "Z"
+    local url = request.get_scheme() .. '://' .. request.get_host() .. request.get_path_with_query()
+    local log_line = '[' .. current_time .. '] ' .. kong.request.get_method() .. ': ' .. url .. "\n"
+    print('Logging: ' .. log_line)
+    file:write(log_line)
+    file:close()
+end
+
+function FileLoggerHandler:response()
+    kong.response.set_header('Logged-By', "FileLogger Plugin :D")
 end
 
 return FileLoggerHandler
