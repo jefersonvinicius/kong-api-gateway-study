@@ -26,7 +26,11 @@ end
 
 function FileLoggerHandler:access(conf)
     print("------ access ------")
-    local file = io.open('./logs.txt', 'a')
+    local file, err = io.open('/tmp/logs.txt', 'a')
+    if not file then 
+        print(err)
+        return kong.response.exit(500, { message = 'Filelogger plugin error', details = err })
+    end
     local request = kong.request
     local current_time = os.date("!%Y-%m-%dT%H:%M:%S") .. "Z"
     local url = request.get_scheme() .. '://' .. request.get_host() .. request.get_path_with_query()

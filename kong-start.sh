@@ -45,4 +45,5 @@ docker run --name kong-gateway \
  -p 8004:8004 \
  -v ./kong.conf:/etc/kong/kong.conf \
  -v ./plugins/filelogger:/kong/plugins/filelogger \
+ -v ./logs.txt:/tmp/logs.txt \
  kong/kong-gateway:3.3.0.0
